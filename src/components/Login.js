@@ -1,12 +1,73 @@
-import React from 'react';
+import axios from 'axios';
+import e from 'cors';
+import React, {useState} from 'react';
+import {useHistory} from 'react-router'
 import styled from 'styled-components';
 
+
 const Login = () => {
+    const initialValues = {
+        username: '',
+        password: '',
+        error: false,
+        errorMessage: ''
+    }
     
+    const {push} = useHistory();
+
+    const [credentials, setCredentials] = useState(initialValues);
+    
+    const handleChange = (e) => {
+        setCredentials({
+            ...credentials,
+            [e.target.name]: e.target.value
+        })
+    }
+
+    const loginHandler = e => {
+        e.preventDefault();
+
+        axios.post('http://localhost:5000/api/login', credentials)
+        .then (res => {
+            localStorage.setItem('token', res.data.token);
+            localStorage.setItem('role', res.data.role);
+            localStorage.setItem('username', res.data.username);
+            push('/view');
+        })
+        .catch (err=> {
+            console.log(err)
+            setCredentials({
+                ...credentials,
+                error: true,
+                errorMessage: `a server provided error message can be found in ${err.response.data}`
+            })
+        })
+    };
+
     return(<ComponentContainer>
         <ModalContainer>
             <h1>Welcome to Blogger Pro</h1>
             <h2>Please enter your account information.</h2>
+            <div>
+                <form onSubmit = {loginHandler}>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value= {credentials.username}
+                        onChange= {handleChange}
+                    />
+                    <input 
+                        type="password"
+                        id="password"
+                        name="password"
+                        value= {credentials.password}
+                        onChange= {handleChange}
+                    />
+                    <button id="submit">Log In</button>
+                </form>
+            </div>
+            <p>{/* fix error state stuff */}</p>
         </ModalContainer>
     </ComponentContainer>);
 }
